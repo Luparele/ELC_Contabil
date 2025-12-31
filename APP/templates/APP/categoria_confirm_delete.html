@@ -1,0 +1,21 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm border-danger">
+    <div class="card-header bg-danger text-white">
+        <h3 class="mb-0">Confirmar Exclusão</h3>
+    </div>
+    <div class="card-body">
+        <p>Você tem certeza que deseja excluir a categoria <strong>"{{ categoria.nome }}"</strong>?</p>
+        <p class="text-muted">Esta ação não pode ser desfeita.</p>
+        <form method="post">
+            {% csrf_token %}
+            <hr>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'listar_categorias' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

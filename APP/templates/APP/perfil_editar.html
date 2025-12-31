@@ -1,0 +1,148 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="mb-0"><i class="bi bi-building me-2"></i>Perfil da Empresa</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <h5 class="mb-3">Dados Gerais</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.cnpj.id_for_label }}" class="form-label">CNPJ</label>
+                    <div class="input-group">
+                        {{ form.cnpj }}
+                        <button class="btn btn-outline-secondary" type="button" id="btn-consultar-cnpj">
+                            <span id="search-icon"><i class="bi bi-search"></i></span>
+                            <span id="spinner-icon" class="spinner-border spinner-border-sm" role="status" style="display: none;"></span>
+                            Consultar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.ramo_atividade.id_for_label }}" class="form-label">Ramo de Atividade</label>
+                    {{ form.ramo_atividade }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.razao_social.id_for_label }}" class="form-label">Razão Social</label>
+                    {{ form.razao_social }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.nome_fantasia.id_for_label }}" class="form-label">Nome Fantasia</label>
+                    {{ form.nome_fantasia }}
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="mb-3">Endereço</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.cep.id_for_label }}" class="form-label">CEP</label>
+                    {{ form.cep }}
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.logradouro.id_for_label }}" class="form-label">Logradouro</label>
+                    {{ form.logradouro }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.numero.id_for_label }}" class="form-label">Número</label>
+                    {{ form.numero }}
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.complemento.id_for_label }}" class="form-label">Complemento</label>
+                    {{ form.complemento }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    <label for="{{ form.bairro.id_for_label }}" class="form-label">Bairro</label>
+                    {{ form.bairro }}
+                </div>
+                <div class="col-md-5 mb-3">
+                    <label for="{{ form.municipio.id_for_label }}" class="form-label">Município</label>
+                    {{ form.municipio }}
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="{{ form.uf.id_for_label }}" class="form-label">UF</label>
+                    {{ form.uf }}
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'ver_perfil' %}" class="btn btn-secondary btn-lg">Cancelar</a>
+                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle me-2"></i>Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SCRIPT ATUALIZADO PARA CONSULTA E MÁSCARA DO CNPJ -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnConsultar = document.getElementById('btn-consultar-cnpj');
+    const searchIcon = document.getElementById('search-icon');
+    const spinnerIcon = document.getElementById('spinner-icon');
+    const cnpjField = document.getElementById('{{ form.cnpj.id_for_label }}');
+
+    // --- FUNÇÃO DE MÁSCARA DE CNPJ ---
+    cnpjField.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for dígito
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+        e.target.value = value.slice(0, 18); // Limita o tamanho
+    });
+
+    btnConsultar.addEventListener('click', function () {
+        // --- CORREÇÃO: Limpa a máscara antes de consultar ---
+        const cnpjLimpo = cnpjField.value.replace(/\D/g, '');
+
+        if (!cnpjLimpo || cnpjLimpo.length !== 14) {
+            alert('Por favor, digite um CNPJ válido com 14 dígitos.');
+            return;
+        }
+
+        searchIcon.style.display = 'none';
+        spinnerIcon.style.display = 'inline-block';
+        btnConsultar.disabled = true;
+
+        // Envia o CNPJ já limpo para a nossa view no backend
+        fetch(`{% url 'consultar_cnpj' %}?cnpj=${encodeURIComponent(cnpjLimpo)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erro ao consultar CNPJ: ' + data.error);
+                } else {
+                    document.getElementById('{{ form.razao_social.id_for_label }}').value = data.razao_social || '';
+                    document.getElementById('{{ form.nome_fantasia.id_for_label }}').value = data.nome_fantasia || '';
+                    document.getElementById('{{ form.cep.id_for_label }}').value = data.cep || '';
+                    document.getElementById('{{ form.logradouro.id_for_label }}').value = data.logradouro || '';
+                    document.getElementById('{{ form.numero.id_for_label }}').value = data.numero || '';
+                    document.getElementById('{{ form.complemento.id_for_label }}').value = data.complemento || '';
+                    document.getElementById('{{ form.bairro.id_for_label }}').value = data.bairro || '';
+                    document.getElementById('{{ form.municipio.id_for_label }}').value = data.municipio || '';
+                    document.getElementById('{{ form.uf.id_for_label }}').value = data.uf || '';
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro de comunicação. Verifique o console para mais detalhes.');
+            })
+            .finally(() => {
+                searchIcon.style.display = 'inline-block';
+                spinnerIcon.style.display = 'none';
+                btnConsultar.disabled = false;
+            });
+    });
+});
+</script>
+{% endblock %}

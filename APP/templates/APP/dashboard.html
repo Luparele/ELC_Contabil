@@ -1,0 +1,514 @@
+{% extends 'APP/base.html' %}
+{% load app_filters %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success-subtle border-success shadow h-100">
+                <div class="card-header fw-bold"><i class="bi bi-wallet2 me-2"></i>Total de Receitas (Mês)</div>
+                <div class="card-body">
+                    <h4 class="card-title text-success">R$ {{ total_receitas|format_currency }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-danger-subtle border-danger shadow h-100">
+                <div class="card-header fw-bold"><i class="bi bi-receipt me-2"></i>Total de Despesas (Mês)</div>
+                <div class="card-body">
+                    <h4 class="card-title text-danger">R$ {{ total_despesas|format_currency }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-dark bg-light shadow h-100">
+                <div class="card-header fw-bold"><i class="bi bi-bar-chart-line me-2"></i>Balanço do Mês</div>
+                <div class="card-body">
+                    <h4 class="card-title {% if balanco >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        R$ {{ balanco|format_currency }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO DE ALERTAS -->
+    {% if alertas %}
+    <div class="row mt-3">
+        <div class="col-12">
+            <h5 class="mb-3"><i class="bi bi-bell-fill me-2"></i>Alertas</h5>
+            {% for alerta in alertas %}
+            <div class="alert alert-{{ alerta.tipo }} alert-dismissible fade show d-flex align-items-center" role="alert">
+                <i class="{{ alerta.icone }} me-3" style="font-size: 1.5rem;"></i>
+                <div class="flex-grow-1">
+                    <strong>{{ alerta.titulo }}</strong><br>
+                    <span>{{ alerta.mensagem }}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <!-- FIM SEÇÃO DE ALERTAS -->
+
+    <div class="row mt-3">
+        {% if faturamento_ano_anterior > 0 and alerta_ano_anterior %}
+            <div class="col-md-6 mb-3">
+                <div class="card bg-secondary-subtle border-secondary shadow-sm h-100 position-relative">
+                    {% if alerta_ano_anterior %}
+                    <span class="position-absolute top-0 start-100 translate-middle p-2 bg-warning border border-light rounded-circle" 
+                          style="cursor: pointer;" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#confirmacaoDeclaracaoModal"
+                          title="Declaração Anual Pendente">
+                        <i class="bi bi-exclamation-triangle-fill text-dark"></i>
+                    </span>
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><i class="bi bi-calendar-check me-2"></i>Faturamento Bruto Anual ({{ ano_anterior }})</h5>
+                        <p class="card-text fs-3 fw-bold text-secondary-emphasis">R$ {{ faturamento_ano_anterior|format_currency }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card bg-info-subtle border-info shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><i class="bi bi-calendar-check me-2"></i>Faturamento Bruto Anual ({{ ano_corrente }})</h5>
+                        <p class="card-text fs-3 fw-bold text-info-emphasis">R$ {{ faturamento_anual|format_currency }}</p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="card bg-info-subtle border-info shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title"><i class="bi bi-calendar-check me-2"></i>Faturamento Bruto Anual ({{ ano_corrente }})</h5>
+                        <p class="card-text fs-2 fw-bold text-info-emphasis">R$ {{ faturamento_anual|format_currency }}</p>
+                        <p class="card-text small text-muted mb-0">
+                            Este é o valor total de receitas emitidas no ano corrente. Utilize-o como base para sua Declaração Anual do Simples Nacional (DASN-SIMEI).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Evolução dos Últimos 6 Meses</h5></div>
+                <div class="card-body"><canvas id="evolucaoMensalChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Despesas do Mês por Categoria</h5></div>
+                <div class="card-body" style="min-height: 350px;">
+                    <canvas id="despesasMesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Despesas do Ano por Categoria</h5></div>
+                <div class="card-body" style="min-height: 350px;">
+                    <canvas id="despesasAnoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NOVOS GRÁFICOS -->
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-trophy me-2"></i>Top 5 Maiores Despesas do Mês</h5></div>
+                <div class="card-body" style="min-height: 350px;">
+                    <canvas id="top5DespesasChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Evolução do Balanço</h5></div>
+                <div class="card-body" style="min-height: 350px;">
+                    <canvas id="balanco6MesesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Comparação Mês Atual vs Anterior</h5></div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Receitas Atual</h6>
+                            <h4 class="text-success">R$ {{ total_receitas|format_currency }}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Receitas Anterior</h6>
+                            <h4 class="text-success">R$ {{ receitas_mes_anterior|format_currency }}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Despesas Atual</h6>
+                            <h4 class="text-danger">R$ {{ total_despesas|format_currency }}</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Despesas Anterior</h6>
+                            <h4 class="text-danger">R$ {{ despesas_mes_anterior|format_currency }}</h4>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Balanço Atual</h6>
+                            <h3 class="{% if balanco >= 0 %}text-success{% else %}text-danger{% endif %}">R$ {{ balanco|format_currency }}</h3>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Balanço Anterior</h6>
+                            <h3 class="{% if balanco_mes_anterior >= 0 %}text-success{% else %}text-danger{% endif %}">R$ {{ balanco_mes_anterior|format_currency }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIM NOVOS GRÁFICOS -->
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="d-grid gap-2"><a href="{% url 'adicionar_receita' %}" class="btn btn-primary btn-lg"><i class="bi bi-plus-lg"></i> Adicionar Nova Receita</a></div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="d-grid gap-2"><a href="{% url 'adicionar_despesa' %}" class="btn btn-secondary btn-lg"><i class="bi bi-plus-lg"></i> Adicionar Nova Despesa</a></div>
+        </div>
+    </div>
+
+    {% if user.is_staff and admin_data %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-hdd-stack me-2"></i>Monitor de Uso de Disco</h5></div>
+                <div class="card-body">
+                    <p>Uso Total: <strong>{{ admin_data.total_geral_mb|format_currency }} MB</strong> de {{ admin_data.TAMANHO_TOTAL_DISCO_DISPLAY }}</p>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-secondary" role="progressbar" 
+                             style="width: {{ admin_data.percentual_sistema_css }}%;" 
+                             aria-valuenow="{{ admin_data.percentual_sistema_css }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: {{ admin_data.percentual_uploads_css }}%;" 
+                             aria-valuenow="{{ admin_data.percentual_uploads_css }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center small mt-2">
+                        <div class="me-3"><i class="bi bi-square-fill text-secondary"></i> Sistema: {{ admin_data.TAMANHO_SISTEMA_MB|format_currency }} MB</div>
+                        <div><i class="bi bi-square-fill text-primary"></i> Uploads: {{ admin_data.total_uploads_mb|format_currency }} MB</div>
+                    </div>
+
+                    <hr>
+                    <h6 class="mt-4">Consumo por Usuário (Uploads):</h6>
+                    <ul class="list-group">
+                        {% for item in admin_data.consumo_por_usuario %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-person-fill me-2"></i>
+                                    <strong>{{ item.username }}</strong>
+                                    {% if item.is_staff %}<span class="badge bg-primary ms-2">Admin</span>{% endif %}
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">
+                                    {{ item.consumo_mb|format_currency }} MB ({{ item.percentual_do_total|format_percent:2 }}% do total)
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if alerta_ano_anterior %}
+<div class="modal fade" id="confirmacaoDeclaracaoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Confirmar Declaração</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p>Você já realizou a Declaração Anual (DASN-SIMEI) do Ano de <strong>{{ ano_anterior }}</strong>?</p>
+                <p class="small text-danger">A confirmação não poderá ser revertida e o alerta para este ano não será exibido novamente.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="{% url 'confirmar_declaracao' ano_anterior %}" class="btn btn-success">Sim, já realizei</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        
+        // --- GRÁFICO DE BARRAS (Existente) ---
+        const ctxEvolucao = document.getElementById('evolucaoMensalChart');
+        if (ctxEvolucao) {
+            const labelsEvolucao = JSON.parse('{{ labels_grafico|safe }}');
+            const receitasData = JSON.parse('{{ dados_receitas|safe }}');
+            const despesasData = JSON.parse('{{ dados_despesas|safe }}');
+            
+            new Chart(ctxEvolucao, {
+                type: 'bar',
+                data: {
+                    labels: labelsEvolucao,
+                    datasets: [
+                        {
+                            label: 'Receitas',
+                            data: receitasData,
+                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            borderColor: 'rgba(25, 135, 84, 1)',
+                            borderWidth: 1
+                        }, 
+                        {
+                            label: 'Despesas',
+                            data: despesasData,
+                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                            borderColor: 'rgba(220, 53, 69, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // --- INÍCIO: NOVOS SCRIPTS DOS GRÁFICOS PIZZA ---
+
+        // Paleta de cores base para os gráficos
+        const pieColors = [
+            '#dc3545', '#198754', '#ffc107', '#0dcaf0', '#0d6efd',
+            '#6f42c1', '#d63384', '#fd7e14', '#20c997', '#6c757d'
+        ];
+
+        // Função para formatar o tooltip (índice) conforme solicitado
+        const pieTooltipCallback = (context) => {
+            let label = context.label || '';
+            let value = context.raw || 0;
+            let total = context.chart.data.datasets[0].data.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+            let percentage = total > 0 ? (value / total * 100).toFixed(2) : 0;
+            
+            let valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+            
+            return `${label}: ${valorFormatado} (${percentage}%)`;
+        };
+
+        // 1. Gráfico Pizza Mensal
+        const ctxMes = document.getElementById('despesasMesChart');
+        if (ctxMes) {
+            const labelsPieMes = JSON.parse('{{ labels_pie_mes_json|safe }}');
+            const dadosPieMes = JSON.parse('{{ dados_pie_mes_json|safe }}');
+
+            new Chart(ctxMes, {
+                type: 'pie',
+                data: {
+                    labels: labelsPieMes,
+                    datasets: [{
+                        label: 'Despesas do Mês',
+                        data: dadosPieMes,
+                        backgroundColor: pieColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: pieTooltipCallback
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Gráfico Pizza Anual
+        const ctxAno = document.getElementById('despesasAnoChart');
+        if (ctxAno) {
+            const labelsPieAno = JSON.parse('{{ labels_pie_ano_json|safe }}');
+            const dadosPieAno = JSON.parse('{{ dados_pie_ano_json|safe }}');
+
+            new Chart(ctxAno, {
+                type: 'pie',
+                data: {
+                    labels: labelsPieAno,
+                    datasets: [{
+                        label: 'Despesas do Ano',
+                        data: dadosPieAno,
+                        backgroundColor: pieColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: pieTooltipCallback
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        // --- FIM: NOVOS SCRIPTS ---
+        
+        // === NOVOS GRÁFICOS ADICIONAIS ===
+        
+        // 3. Top 5 Maiores Despesas
+        const ctxTop5 = document.getElementById('top5DespesasChart');
+        if (ctxTop5) {
+            const labelsTop5 = JSON.parse('{{ labels_top5_json|safe }}');
+            const valoresTop5 = JSON.parse('{{ valores_top5_json|safe }}');
+            
+            new Chart(ctxTop5, {
+                type: 'bar',
+                data: {
+                    labels: labelsTop5,
+                    datasets: [{
+                        label: 'Valor',
+                        data: valoresTop5,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'R$ ' + context.parsed.x.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 4. Evolução do Balanço
+        const ctxBalanco = document.getElementById('balanco6MesesChart');
+        if (ctxBalanco) {
+            const labelsBalanco = JSON.parse('{{ labels_balanco_json|safe }}');
+            const dadosBalanco = JSON.parse('{{ dados_balanco_json|safe }}');
+            
+            new Chart(ctxBalanco, {
+                type: 'line',
+                data: {
+                    labels: labelsBalanco,
+                    datasets: [{
+                        label: 'Balanço',
+                        data: dadosBalanco,
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Balanço: R$ ' + context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // === FIM NOVOS GRÁFICOS ===
+    });
+</script>
+{% endblock %}

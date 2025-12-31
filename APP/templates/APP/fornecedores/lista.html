@@ -1,0 +1,189 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-people-fill"></i> Fornecedores</h2>
+        <a href="{% url 'criar_fornecedor' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Fornecedor
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="busca" class="form-control" placeholder="Nome, CPF/CNPJ..." value="{{ busca }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="PF" {% if tipo_filtro == 'PF' %}selected{% endif %}>Pessoa Física</option>
+                        <option value="PJ" {% if tipo_filtro == 'PJ' %}selected{% endif %}>Pessoa Jurídica</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="ativos" {% if status_filtro == 'ativos' %}selected{% endif %}>Ativos</option>
+                        <option value="inativos" {% if status_filtro == 'inativos' %}selected{% endif %}>Inativos</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="bi bi-filter"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Fornecedores -->
+    <div class="card">
+        <div class="card-body">
+            {% if fornecedores %}
+            
+            <!-- View Desktop -->
+            <div class="d-none d-md-block">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Telefone</th>
+                                <th>Status</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fornecedor in fornecedores %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'detalhes_fornecedor' fornecedor.pk %}" class="text-decoration-none">
+                                        <strong>{{ fornecedor.nome }}</strong>
+                                        {% if fornecedor.nome_fantasia %}
+                                            <br><small class="text-muted">{{ fornecedor.nome_fantasia }}</small>
+                                        {% endif %}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if fornecedor.tipo == 'PF' %}
+                                        <span class="badge bg-info">Pessoa Física</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">Pessoa Jurídica</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ fornecedor.cpf_cnpj|default:"-" }}</td>
+                                <td>{{ fornecedor.telefone|default:"-" }}</td>
+                                <td>
+                                    {% if fornecedor.ativo %}
+                                        <span class="badge bg-success">Ativo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inativo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'detalhes_fornecedor' fornecedor.pk %}" class="btn btn-outline-info" title="Ver Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'editar_fornecedor' fornecedor.pk %}" class="btn btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- View Mobile (Cards) -->
+            <div class="d-md-none">
+                {% for fornecedor in fornecedores %}
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <strong>{{ fornecedor.nome }}</strong>
+                                    {% if fornecedor.ativo %}
+                                        <span class="badge bg-success ms-1">Ativo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary ms-1">Inativo</span>
+                                    {% endif %}
+                                </h6>
+                                {% if fornecedor.tipo == 'PF' %}
+                                    <span class="badge bg-info">Pessoa Física</span>
+                                {% else %}
+                                    <span class="badge bg-primary">Pessoa Jurídica</span>
+                                {% endif %}
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#fornecedor{{ fornecedor.pk }}" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Conteúdo Expansível -->
+                        <div class="collapse" id="fornecedor{{ fornecedor.pk }}">
+                            <hr class="my-2">
+                            <div class="row g-2">
+                                {% if fornecedor.nome_fantasia %}
+                                <div class="col-12">
+                                    <small class="text-muted">Nome Fantasia:</small><br>
+                                    <span>{{ fornecedor.nome_fantasia }}</span>
+                                </div>
+                                {% endif %}
+                                <div class="col-12">
+                                    <small class="text-muted">CPF/CNPJ:</small><br>
+                                    <span>{{ fornecedor.cpf_cnpj|default:"-" }}</span>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted">Telefone:</small><br>
+                                    <span>{{ fornecedor.telefone|default:"-" }}</span>
+                                </div>
+                                {% if fornecedor.email %}
+                                <div class="col-12">
+                                    <small class="text-muted">Email:</small><br>
+                                    <span>{{ fornecedor.email }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'detalhes_fornecedor' fornecedor.pk %}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i> Ver Detalhes
+                                </a>
+                                <a href="{% url 'editar_fornecedor' fornecedor.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-3">
+                <small class="text-muted">Total: {{ fornecedores|length }} fornecedor(es)</small>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <p class="mt-3 text-muted">Nenhum fornecedor encontrado</p>
+                <a href="{% url 'criar_fornecedor' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Cadastrar Primeiro Fornecedor
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'APP/base.html' %}
+{% load app_filters %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Confirmar Exclusão
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+            </div>
+            
+            <h5 class="mb-3">Você tem certeza que deseja excluir {% if tipo == 'receita' %}esta{% else %}esta{% endif %} {{ tipo }}?</h5>
+            
+            <div class="card bg-light">
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Descrição:</dt>
+                        <dd class="col-sm-8">{{ objeto.descricao }}</dd>
+                        
+                        <dt class="col-sm-4">Valor:</dt>
+                        <dd class="col-sm-8">
+                            <span class="{% if tipo == 'receita' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                R$ {{ objeto.valor|format_currency }}
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Data:</dt>
+                        <dd class="col-sm-8">{{ objeto.data|date:"d/m/Y" }}</dd>
+                        
+                        {% if objeto.categoria %}
+                        <dt class="col-sm-4">Categoria:</dt>
+                        <dd class="col-sm-8">{{ objeto.categoria.nome }}</dd>
+                        {% endif %}
+                        
+                        {% if objeto.fornecedor %}
+                        <dt class="col-sm-4">Fornecedor:</dt>
+                        <dd class="col-sm-8 mb-0">{{ objeto.fornecedor.nome }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer">
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash-fill me-1"></i>
+                    Sim, excluir
+                </button>
+                <a href="{% url 'listar_lancamentos' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Cancelar
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

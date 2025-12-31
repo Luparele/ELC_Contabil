@@ -1,0 +1,20 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="mb-0">{{ titulo }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <hr>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'listar_categorias' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

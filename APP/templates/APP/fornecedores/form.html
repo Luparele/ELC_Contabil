@@ -1,0 +1,292 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-person-plus-fill"></i> {{ titulo }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- CPF/CNPJ - PRIMEIRO CAMPO -->
+                        <div class="mb-3">
+                            <label for="{{ form.cpf_cnpj.id_for_label }}" class="form-label">
+                                <i class="bi bi-card-text me-2"></i>{{ form.cpf_cnpj.label }}
+                            </label>
+                            {{ form.cpf_cnpj }}
+                            {% if form.cpf_cnpj.errors %}
+                                <div class="text-danger">{{ form.cpf_cnpj.errors }}</div>
+                            {% endif %}
+                            <div id="cnpj-loading" class="text-primary mt-1" style="display: none;">
+                                <i class="bi bi-hourglass-split"></i> Buscando dados...
+                            </div>
+                            <div id="cnpj-success" class="text-success mt-1" style="display: none;">
+                                <i class="bi bi-check-circle"></i> Dados preenchidos automaticamente!
+                            </div>
+                            <div id="cnpj-error" class="text-danger mt-1" style="display: none;">
+                                <i class="bi bi-exclamation-triangle"></i> <span id="cnpj-error-message"></span>
+                            </div>
+                            <small class="form-text text-muted d-block mt-1">
+                                Digite apenas números. Para CNPJ, os dados serão preenchidos automaticamente.
+                            </small>
+                        </div>
+
+                        <!-- Tipo -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label">{{ form.tipo.label }} *</label>
+                                {{ form.tipo }}
+                                {% if form.tipo.errors %}
+                                    <div class="text-danger">{{ form.tipo.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Nome e Nome Fantasia -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.nome.label }} *</label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger">{{ form.nome.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.nome_fantasia.label }}</label>
+                                {{ form.nome_fantasia }}
+                            </div>
+                        </div>
+
+                        <!-- Contato -->
+                        <h5 class="mt-4 mb-3">Contato</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.telefone.label }}</label>
+                                {{ form.telefone }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <!-- Endereço -->
+                        <h5 class="mt-4 mb-3">Endereço</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ form.cep.label }}</label>
+                                {{ form.cep }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">{{ form.logradouro.label }}</label>
+                                {{ form.logradouro }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ form.numero.label }}</label>
+                                {{ form.numero }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.complemento.label }}</label>
+                            {{ form.complemento }}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-5">
+                                <label class="form-label">{{ form.bairro.label }}</label>
+                                {{ form.bairro }}
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">{{ form.municipio.label }}</label>
+                                {{ form.municipio }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ form.uf.label }}</label>
+                                {{ form.uf }}
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.observacoes.label }}</label>
+                            {{ form.observacoes }}
+                        </div>
+
+                        <!-- Ativo -->
+                        <div class="form-check mb-3">
+                            {{ form.ativo }}
+                            <label class="form-check-label" for="{{ form.ativo.id_for_label }}">
+                                {{ form.ativo.label }}
+                            </label>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'lista_fornecedores' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para Autocomplete de CNPJ -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cnpjInput = document.getElementById('id_cpf_cnpj');
+    const loadingDiv = document.getElementById('cnpj-loading');
+    const successDiv = document.getElementById('cnpj-success');
+    const errorDiv = document.getElementById('cnpj-error');
+    const errorMessage = document.getElementById('cnpj-error-message');
+    
+    let timeoutId = null;
+    
+    function limparMensagens() {
+        loadingDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+    }
+    
+    function limparCNPJ(cnpj) {
+        return cnpj.replace(/\D/g, '');
+    }
+    
+    function isCNPJ(valor) {
+        const limpo = limparCNPJ(valor);
+        return limpo.length === 14;
+    }
+    
+    async function buscarCNPJ(cnpj) {
+        const cnpjLimpo = limparCNPJ(cnpj);
+        
+        if (!isCNPJ(cnpj)) {
+            return; // Não é CNPJ, não faz nada
+        }
+        
+        limparMensagens();
+        loadingDiv.style.display = 'block';
+        
+        try {
+            const response = await fetch(`/consultar-cnpj/?cnpj=${cnpjLimpo}`);
+            const data = await response.json();
+            
+            limparMensagens();
+            
+            if (response.ok && !data.error) {
+                // Preencher campos
+                if (data.razao_social) {
+                    document.getElementById('id_nome').value = data.razao_social;
+                }
+                
+                if (data.nome_fantasia) {
+                    document.getElementById('id_nome_fantasia').value = data.nome_fantasia;
+                }
+                
+                if (data.ddd_telefone_1 && data.ddd_telefone_1) {
+                    const telefone = `(${data.ddd_telefone_1}) ${data.ddd_telefone_1}`;
+                    document.getElementById('id_telefone').value = telefone;
+                }
+                
+                if (data.email) {
+                    document.getElementById('id_email').value = data.email;
+                }
+                
+                // Endereço
+                if (data.cep) {
+                    const cepFormatado = data.cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+                    document.getElementById('id_cep').value = cepFormatado;
+                }
+                
+                if (data.logradouro) {
+                    document.getElementById('id_logradouro').value = data.logradouro;
+                }
+                
+                if (data.numero) {
+                    document.getElementById('id_numero').value = data.numero;
+                }
+                
+                if (data.complemento) {
+                    document.getElementById('id_complemento').value = data.complemento;
+                }
+                
+                if (data.bairro) {
+                    document.getElementById('id_bairro').value = data.bairro;
+                }
+                
+                if (data.municipio) {
+                    document.getElementById('id_municipio').value = data.municipio;
+                }
+                
+                if (data.uf) {
+                    document.getElementById('id_uf').value = data.uf;
+                }
+                
+                // Definir tipo como PJ automaticamente
+                document.getElementById('id_tipo').value = 'PJ';
+                
+                successDiv.style.display = 'block';
+                
+                // Esconder mensagem de sucesso após 3 segundos
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                }, 3000);
+                
+            } else {
+                errorMessage.textContent = data.error || 'CNPJ não encontrado';
+                errorDiv.style.display = 'block';
+            }
+            
+        } catch (error) {
+            limparMensagens();
+            errorMessage.textContent = 'Erro ao consultar CNPJ. Verifique sua conexão.';
+            errorDiv.style.display = 'block';
+        }
+    }
+    
+    // Evento de input com debounce
+    cnpjInput.addEventListener('input', function() {
+        limparMensagens();
+        
+        // Cancelar timeout anterior
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        
+        const valor = this.value;
+        
+        // Se for CNPJ (14 dígitos), aguardar 800ms e buscar
+        if (isCNPJ(valor)) {
+            timeoutId = setTimeout(() => {
+                buscarCNPJ(valor);
+            }, 800);
+        }
+    });
+    
+    // Também buscar ao sair do campo (blur)
+    cnpjInput.addEventListener('blur', function() {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        
+        const valor = this.value;
+        if (isCNPJ(valor)) {
+            buscarCNPJ(valor);
+        }
+    });
+});
+</script>
+{% endblock %}

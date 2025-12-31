@@ -1,0 +1,45 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="mb-0"><i class="bi bi-bank me-2"></i>{{ titulo }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.nome_banco.id_for_label }}" class="form-label">Nome do Banco</label>
+                    {{ form.nome_banco }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.codigo_banco.id_for_label }}" class="form-label">Número da Instituição</label>
+                    {{ form.codigo_banco }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.agencia.id_for_label }}" class="form-label">Agência</label>
+                    {{ form.agencia }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.conta_corrente.id_for_label }}" class="form-label">Conta Corrente</label>
+                    {{ form.conta_corrente }}
+                </div>
+            </div>
+            <div class="form-check mb-3">
+                {{ form.preferencial }}
+                <label class="form-check-label" for="{{ form.preferencial.id_for_label }}">
+                    Marcar como conta preferencial
+                </label>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'ver_perfil' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-2"></i>Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

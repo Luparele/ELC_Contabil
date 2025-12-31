@@ -1,0 +1,192 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-person-badge-fill"></i> Detalhes do Fornecedor</h2>
+        <div>
+            <a href="{% url 'editar_fornecedor' fornecedor.pk %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <a href="{% url 'lista_fornecedores' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações do Fornecedor -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> Informações</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="35%">Nome:</th>
+                            <td>{{ fornecedor.nome }}</td>
+                        </tr>
+                        {% if fornecedor.nome_fantasia %}
+                        <tr>
+                            <th>Nome Fantasia:</th>
+                            <td>{{ fornecedor.nome_fantasia }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Tipo:</th>
+                            <td>
+                                {% if fornecedor.tipo == 'PF' %}
+                                    <span class="badge bg-info">Pessoa Física</span>
+                                {% else %}
+                                    <span class="badge bg-primary">Pessoa Jurídica</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if fornecedor.cpf_cnpj %}
+                        <tr>
+                            <th>CPF/CNPJ:</th>
+                            <td>{{ fornecedor.cpf_cnpj }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if fornecedor.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inativo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Cadastrado em:</th>
+                            <td>{{ fornecedor.data_cadastro|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                    </table>
+
+                    <h6 class="mt-3">Contato</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="35%">Telefone:</th>
+                            <td>{{ fornecedor.telefone|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ fornecedor.email|default:"-" }}</td>
+                        </tr>
+                    </table>
+
+                    {% if fornecedor.logradouro or fornecedor.municipio %}
+                    <h6 class="mt-3">Endereço</h6>
+                    <p class="mb-0">
+                        {{ fornecedor.logradouro|default:"" }} {{ fornecedor.numero|default:"" }}<br>
+                        {% if fornecedor.complemento %}{{ fornecedor.complemento }}<br>{% endif %}
+                        {{ fornecedor.bairro|default:"" }}<br>
+                        {{ fornecedor.municipio|default:"" }}{% if fornecedor.uf %}/{{ fornecedor.uf }}{% endif %}<br>
+                        {% if fornecedor.cep %}CEP: {{ fornecedor.cep }}{% endif %}
+                    </p>
+                    {% endif %}
+
+                    {% if fornecedor.observacoes %}
+                    <h6 class="mt-3">Observações</h6>
+                    <p>{{ fornecedor.observacoes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo Financeiro -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-graph-up"></i> Resumo Financeiro</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3 class="text-success">R$ {{ total_receitas|floatformat:2 }}</h3>
+                            <p class="text-muted">Total Receitas</p>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-danger">R$ {{ total_despesas|floatformat:2 }}</h3>
+                            <p class="text-muted">Total Despesas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightning-fill"></i> Ações</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if fornecedor.ativo %}
+                        <a href="{% url 'excluir_fornecedor' fornecedor.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-x-circle"></i> Inativar Fornecedor
+                        </a>
+                        {% else %}
+                        <p class="text-muted">Fornecedor inativo</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimentações -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-list-ul"></i> Movimentações</h5>
+                </div>
+                <div class="card-body">
+                    {% if despesas or receitas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th class="text-end">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for despesa in despesas %}
+                                <tr>
+                                    <td>{{ despesa.data|date:"d/m/Y" }}</td>
+                                    <td><span class="badge bg-danger">Despesa</span></td>
+                                    <td>{{ despesa.descricao }}</td>
+                                    <td>{{ despesa.categoria.nome|default:"-" }}</td>
+                                    <td class="text-end text-danger">R$ {{ despesa.valor|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% for receita in receitas %}
+                                <tr>
+                                    <td>{{ receita.data|date:"d/m/Y" }}</td>
+                                    <td><span class="badge bg-success">Receita</span></td>
+                                    <td>{{ receita.descricao }}</td>
+                                    <td>{{ receita.categoria.nome|default:"-" }}</td>
+                                    <td class="text-end text-success">R$ {{ receita.valor|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox display-4 text-muted"></i>
+                        <p class="mt-3 text-muted">Nenhuma movimentação registrada</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

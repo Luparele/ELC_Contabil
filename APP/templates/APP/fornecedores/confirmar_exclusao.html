@@ -1,0 +1,43 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Inativação</h4>
+                </div>
+                <div class="card-body">
+                    <p>Você tem certeza que deseja <strong>inativar</strong> este fornecedor?</p>
+                    
+                    <div class="alert alert-info">
+                        <strong>{{ fornecedor.nome }}</strong>
+                        {% if fornecedor.cpf_cnpj %}
+                            <br>{{ fornecedor.cpf_cnpj }}
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i> 
+                        O fornecedor será <strong>inativado</strong>, mas não será excluído permanentemente. 
+                        Todas as movimentações vinculadas a ele serão preservadas.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'detalhes_fornecedor' fornecedor.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-check-circle"></i> Sim, Inativar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

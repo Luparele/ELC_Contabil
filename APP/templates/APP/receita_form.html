@@ -1,0 +1,89 @@
+{% extends 'APP/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="mb-0"><i class="bi bi-arrow-up-circle-fill text-success me-2"></i>Adicionar Nova Receita</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="receita-form">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="{{ form.descricao.id_for_label }}" class="form-label"><i class="bi bi-card-text me-2"></i>Descrição</label>
+                {{ form.descricao }}
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.valor.id_for_label }}" class="form-label"><i class="bi bi-currency-dollar me-2"></i>Valor (R$)</label>
+                    {{ form.valor }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.data.id_for_label }}" class="form-label"><i class="bi bi-calendar-date me-2"></i>Data</label>
+                    {{ form.data }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.categoria.id_for_label }}" class="form-label"><i class="bi bi-tags me-2"></i>Categoria</label>
+                {{ form.categoria }}
+            </div>
+            
+            <!-- Campo Cliente/Fornecedor -->
+            <div class="mb-3">
+                <label for="{{ form.fornecedor.id_for_label }}" class="form-label">
+                    <i class="bi bi-person-fill me-2"></i>Cliente (Opcional)
+                </label>
+                {{ form.fornecedor }}
+                <small class="form-text text-muted d-block mt-1">
+                    Selecione um cliente cadastrado ou crie um novo abaixo
+                </small>
+            </div>
+            
+            <!-- Campo Novo Cliente -->
+            <div class="mb-3">
+                <label for="{{ form.novo_fornecedor.id_for_label }}" class="form-label">
+                    <i class="bi bi-plus-circle me-2"></i>{{ form.novo_fornecedor.label }}
+                </label>
+                {{ form.novo_fornecedor }}
+                <small class="form-text text-muted d-block mt-1">
+                    Ao preencher este campo, um novo cliente será cadastrado automaticamente
+                </small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.comprovante.id_for_label }}" class="form-label"><i class="bi bi-paperclip me-2"></i>Nota Fiscal / Comprovante (Opcional)</label>
+                {{ form.comprovante }}
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="open-camera-btn" data-form-id="receita-form">
+                    <i class="bi bi-camera-fill me-1"></i> Tirar Foto
+                </button>
+            </div>
+
+            <hr>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle me-2"></i>Salvar Receita</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ESTRUTURA DO MODAL DA CÂMERA -->
+<div class="modal fade" id="cameraModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Capturar Comprovante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <video id="camera-stream" playsinline autoplay style="width: 100%;"></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="capture-btn"><i class="bi bi-camera-reels-fill me-2"></i>Capturar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
