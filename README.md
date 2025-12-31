@@ -92,7 +92,6 @@ ELC_Contabil/
 ├── staticfiles/               # Arquivos estáticos coletados
 ├── manage.py                  # Script de gerenciamento
 ├── requirements.txt           # Dependências Python
-├── INSTRUCOES_POVOAR.md      # Instruções para popular BD
 └── SUGESTOES_MELHORIAS.md    # Roadmap de melhorias
 ```
 
