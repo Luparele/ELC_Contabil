@@ -75,17 +75,12 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-### 5. (Opcional) Popule o banco com dados de exemplo
-```bash
-python povoar_iago_FINAL.py
-```
-
-### 6. Crie um superusuário
+### 5. Crie um superusuário
 ```bash
 python manage.py createsuperuser
 ```
 
-### 7. Execute o servidor
+### 6. Execute o servidor
 ```bash
 python manage.py runserver
 ```
@@ -114,7 +109,6 @@ ELC_Contabil/
 ├── staticfiles/               # Arquivos estáticos coletados
 ├── manage.py                  # Script de gerenciamento
 ├── requirements.txt           # Dependências Python
-├── INSTRUCOES_POVOAR.md      # Instruções para popular BD
 └── SUGESTOES_MELHORIAS.md    # Roadmap de melhorias
 ```
 
