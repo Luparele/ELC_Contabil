@@ -21,6 +21,8 @@ db.sqlite3-journal
 /staticfiles
 *.pot
 local_settings.py
+settings_local.py
+**/settings_local.py
 
 # IDE
 .vscode/
@@ -43,7 +45,14 @@ Thumbs.db
 *.tmp
 *.cache
 backup-segurança.zip
+backup-seguranca.zip
+backup 04-01-2026 as 14-14.zip
 
 # Database exports
 *.sql
 *.dump
+
+# Python specific
+*.egg-info/
+dist/
+build/

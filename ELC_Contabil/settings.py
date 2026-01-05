@@ -41,11 +41,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'APP', # Nosso app principal
+    # Apps de terceiros
+    'rest_framework',
+    'django_filters',
+    'drf_yasg',
+    'corsheaders',
+    # Nosso app principal
+    'APP',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS - deve vir antes de CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -142,3 +149,84 @@ LOGIN_REDIRECT_URL = '/' # Para onde ir após o login (página inicial)
 # ALTERADO: Para onde ir após o logout (página de login)
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login' # O nome da URL de login
+
+# --- CONFIGURAÇÕES DA API REST ---
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 25,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
+    'DATE_FORMAT': '%Y-%m-%d',
+}
+
+# --- CONFIGURAÇÕES DO SWAGGER ---
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        },
+        'Session': {
+            'type': 'apiKey',
+            'name': 'sessionid',
+            'in': 'cookie'
+        }
+    },
+    'USE_SESSION_AUTH': True,
+    'LOGIN_URL': '/admin/login/',
+    'LOGOUT_URL': '/admin/logout/',
+    'DOC_EXPANSION': 'list',
+    'APIS_SORTER': 'alpha',
+    'OPERATIONS_SORTER': 'alpha',
+    'JSON_EDITOR': True,
+    'SHOW_REQUEST_HEADERS': True,
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'patch', 'delete'],
+}
+
+# --- CONFIGURAÇÕES DE CORS (Cross-Origin Resource Sharing) ---
+# Permite requisições de outros domínios
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Em produção, especifique os domínios permitidos
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

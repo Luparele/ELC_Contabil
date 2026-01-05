@@ -19,6 +19,16 @@ Sistema web desenvolvido em Django para gestão financeira completa com controle
 - ✅ Análise de fluxo de caixa
 - ✅ Integração com Power BI
 
+### 🔌 API REST Completa
+- ✅ **API REST com Django REST Framework**
+- ✅ **Documentação Swagger/OpenAPI interativa**
+- ✅ **Endpoints para todas as entidades**
+- ✅ **Autenticação Session e Basic Auth**
+- ✅ **Filtros, busca e ordenação**
+- ✅ **Paginação automática**
+- ✅ **CORS configurado para integrações externas**
+- ✅ **Relatórios via API**
+
 ### 🎨 Interface e Experiência
 - ✅ Dark Mode / Light Mode
 - ✅ Progressive Web App (PWA)
@@ -28,11 +38,13 @@ Sistema web desenvolvido em Django para gestão financeira completa com controle
 ## 🚀 Tecnologias
 
 - **Backend:** Python 3.x, Django 5.2.7
+- **API REST:** Django REST Framework, drf-yasg (Swagger)
 - **Database:** SQLite (27 tabelas)
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Relatórios:** ReportLab, OpenPyXL
 - **PWA:** Service Workers, Web Manifest
 - **BI:** Power BI Desktop com DAX
+- **CORS:** django-cors-headers para integrações externas
 
 ## 📦 Instalação
 
@@ -79,6 +91,11 @@ python manage.py runserver
 ```
 
 Acesse: `http://localhost:8000`
+
+### 8. Acesse a documentação da API
+- **Swagger UI**: http://localhost:8000/swagger/
+- **ReDoc**: http://localhost:8000/redoc/
+- **API Endpoints**: http://localhost:8000/api/v1/
 
 ## 📁 Estrutura do Projeto
 
@@ -144,6 +161,70 @@ O projeto inclui integração com Power BI:
 - Análise por categoria
 - Relatórios segmentados
 
+## 🔌 API REST
+
+O ELC Contabil possui uma **API REST completa** para integração com sistemas externos!
+
+### 📚 Documentação
+- **[API Documentation](API_DOCUMENTATION.md)** - Documentação completa
+- **[API README](API_README.md)** - Guia rápido de uso
+- **[Integration Examples](INTEGRATION_EXAMPLES.md)** - Exemplos em várias linguagens
+- **[test_api.py](test_api.py)** - Script de testes
+
+### ⚡ Recursos da API
+- **Autenticação**: Session e Basic Auth
+- **Formatos**: JSON
+- **Documentação**: Swagger UI e ReDoc
+- **Filtros**: Por período, categoria, fornecedor
+- **Busca**: Full-text search
+- **Ordenação**: Customizável
+- **Paginação**: Automática (25 itens/página)
+- **CORS**: Configurado para integrações externas
+
+### 🔗 Principais Endpoints
+```
+GET    /api/v1/receitas/          # Listar receitas
+POST   /api/v1/receitas/          # Criar receita
+GET    /api/v1/despesas/          # Listar despesas
+POST   /api/v1/despesas/          # Criar despesa
+GET    /api/v1/fornecedores/      # Listar fornecedores
+GET    /api/v1/categorias/        # Listar categorias
+GET    /api/v1/relatorios/dashboard/  # Dashboard
+GET    /api/v1/relatorios/mensal/     # Relatório mensal
+```
+
+### 💻 Exemplo de Uso
+```python
+import requests
+
+# Configurar autenticação
+auth = ('usuario', 'senha')
+
+# Listar receitas
+response = requests.get(
+    'http://localhost:8000/api/v1/receitas/',
+    auth=auth
+)
+receitas = response.json()
+
+# Criar receita
+nova_receita = {
+    "descricao": "Venda de Produto",
+    "valor": 1500.00,
+    "data": "2024-01-15"
+}
+response = requests.post(
+    'http://localhost:8000/api/v1/receitas/',
+    auth=auth,
+    json=nova_receita
+)
+```
+
+### 🧪 Testar a API
+1. **Swagger UI**: http://localhost:8000/swagger/
+2. **ReDoc**: http://localhost:8000/redoc/
+3. **Script Python**: `python test_api.py`
+
 ## 🎨 Temas
 
 O sistema possui dois temas:
@@ -194,7 +275,13 @@ Projeto de uso privado - Todos os direitos reservados.
 
 ## 🔄 Versão
 
-**v2.0** - Sistema completo com PWA, Dark Mode e integração Power BI
+**v2.1** - Sistema completo com:
+- ✅ PWA (Progressive Web App)
+- ✅ Dark Mode / Light Mode
+- ✅ Integração Power BI
+- ✅ **API REST completa com Swagger**
+- ✅ **Documentação interativa**
+- ✅ **CORS para integrações externas**
 
 ---
 
