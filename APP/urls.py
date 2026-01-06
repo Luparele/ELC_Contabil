@@ -39,4 +39,9 @@ urlpatterns = [
     path('fornecedores/<int:pk>/', views.detalhes_fornecedor, name='detalhes_fornecedor'),
     path('fornecedores/<int:pk>/editar/', views.editar_fornecedor, name='editar_fornecedor'),
     path('fornecedores/<int:pk>/excluir/', views.excluir_fornecedor, name='excluir_fornecedor'),
+    
+    # URLs de DASN-SIMEI
+    path('dasn-simei/adicionar/', views.adicionar_dasn_simei, name='adicionar_dasn_simei'),
+    path('dasn-simei/<int:pk>/editar/', views.editar_dasn_simei, name='editar_dasn_simei'),
+    path('dasn-simei/<int:pk>/excluir/', views.excluir_dasn_simei, name='excluir_dasn_simei'),
 ]

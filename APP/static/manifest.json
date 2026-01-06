@@ -3,10 +3,10 @@
   "short_name": "ELC Contábil",
   "description": "Sistema de Gestão Financeira",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#212529",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/static/icons/icon-192x192.png",
@@ -19,22 +19,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Nova Receita",
-      "short_name": "Receita",
-      "description": "Adicionar nova receita",
-      "url": "/receita/adicionar/",
-      "icons": [{ "src": "/static/icons/icon-96x96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Nova Despesa",
-      "short_name": "Despesa",
-      "description": "Adicionar nova despesa",
-      "url": "/despesa/adicionar/",
-      "icons": [{ "src": "/static/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ]
 }

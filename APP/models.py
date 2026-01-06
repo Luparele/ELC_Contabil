@@ -210,3 +210,71 @@ class PreferenciaUsuario(models.Model):
     
     def __str__(self):
         return f"Preferências de {self.usuario.username}"
+
+
+class DASN_SIMEI(models.Model):
+    """Declaração Anual do Simples Nacional - SIMEI"""
+    
+    # Vinculação ao perfil da empresa
+    perfil_empresa = models.ForeignKey(
+        PerfilEmpresa, 
+        on_delete=models.CASCADE, 
+        related_name='declaracoes_simei',
+        verbose_name='Perfil da Empresa'
+    )
+    
+    # Ano da declaração
+    ano_calendario = models.IntegerField(verbose_name='Ano Calendário')
+    
+    # Valor bruto anual
+    valor_bruto_anual = models.DecimalField(
+        max_digits=15, 
+        decimal_places=2,
+        verbose_name='Valor Bruto Anual (R$)',
+        help_text='Total de receitas brutas do ano'
+    )
+    
+    # Status da declaração
+    declarada = models.BooleanField(
+        default=False,
+        verbose_name='Declaração Enviada?',
+        help_text='Marque se a DASN-SIMEI foi enviada à Receita Federal'
+    )
+    
+    # Data de envio (quando for declarada)
+    data_envio = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='Data de Envio',
+        help_text='Data em que a declaração foi enviada'
+    )
+    
+    # Comprovante em PDF
+    comprovante_pdf = models.FileField(
+        upload_to='dasn_simei/',
+        null=True,
+        blank=True,
+        verbose_name='Comprovante (PDF)',
+        help_text='Upload do comprovante de envio da DASN-SIMEI'
+    )
+    
+    # Observações
+    observacoes = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observações'
+    )
+    
+    # Controle
+    data_cadastro = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-ano_calendario']
+        verbose_name = 'DASN-SIMEI'
+        verbose_name_plural = 'DASN-SIMEI'
+        unique_together = ('perfil_empresa', 'ano_calendario')
+    
+    def __str__(self):
+        status = "Declarada" if self.declarada else "Pendente"
+        return f"DASN-SIMEI {self.ano_calendario} - {status}"

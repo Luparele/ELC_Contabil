@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import DespesaForm, ReceitaForm, CategoriaForm, PerfilEmpresaForm, ContaBancariaForm, FornecedorForm
-from .models import Despesa, Receita, Categoria, PerfilEmpresa, ContaBancaria, DeclaracaoAnual, Fornecedor, PreferenciaUsuario
+from .forms import DespesaForm, ReceitaForm, CategoriaForm, PerfilEmpresaForm, ContaBancariaForm, FornecedorForm, DASN_SIMEIForm
+from .models import Despesa, Receita, Categoria, PerfilEmpresa, ContaBancaria, DeclaracaoAnual, Fornecedor, PreferenciaUsuario, DASN_SIMEI
 from django.contrib.auth.models import User
 from django.contrib import messages
 from itertools import chain
@@ -1294,5 +1294,69 @@ def excluir_despesa(request, pk):
     return render(request, 'APP/confirmar_exclusao.html', {
         'objeto': despesa,
         'tipo': 'despesa'
+    })
+
+
+# ==================== VIEWS DE DASN-SIMEI ====================
+
+@login_required
+def adicionar_dasn_simei(request):
+    """Adiciona uma nova declaração DASN-SIMEI"""
+    perfil = get_object_or_404(PerfilEmpresa, usuario=request.user)
+    
+    if request.method == 'POST':
+        form = DASN_SIMEIForm(request.POST, request.FILES)
+        if form.is_valid():
+            dasn = form.save(commit=False)
+            dasn.perfil_empresa = perfil
+            dasn.save()
+            messages.success(request, f'DASN-SIMEI {dasn.ano_calendario} cadastrada com sucesso!')
+            return redirect('ver_perfil')
+    else:
+        form = DASN_SIMEIForm()
+    
+    return render(request, 'APP/dasn_simei_form.html', {
+        'form': form,
+        'perfil': perfil
+    })
+
+
+@login_required
+def editar_dasn_simei(request, pk):
+    """Edita uma declaração DASN-SIMEI existente"""
+    perfil = get_object_or_404(PerfilEmpresa, usuario=request.user)
+    dasn = get_object_or_404(DASN_SIMEI, pk=pk, perfil_empresa=perfil)
+    
+    if request.method == 'POST':
+        form = DASN_SIMEIForm(request.POST, request.FILES, instance=dasn)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'DASN-SIMEI {dasn.ano_calendario} atualizada com sucesso!')
+            return redirect('ver_perfil')
+    else:
+        form = DASN_SIMEIForm(instance=dasn)
+    
+    return render(request, 'APP/dasn_simei_form.html', {
+        'form': form,
+        'perfil': perfil,
+        'dasn': dasn,
+        'editando': True
+    })
+
+
+@login_required
+def excluir_dasn_simei(request, pk):
+    """Exclui uma declaração DASN-SIMEI"""
+    perfil = get_object_or_404(PerfilEmpresa, usuario=request.user)
+    dasn = get_object_or_404(DASN_SIMEI, pk=pk, perfil_empresa=perfil)
+    
+    if request.method == 'POST':
+        ano = dasn.ano_calendario
+        dasn.delete()
+        messages.success(request, f'DASN-SIMEI {ano} excluída com sucesso!')
+        return redirect('ver_perfil')
+    
+    return render(request, 'APP/dasn_simei_confirm_delete.html', {
+        'dasn': dasn
     })
 

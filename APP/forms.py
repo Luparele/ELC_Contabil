@@ -1,5 +1,5 @@
 from django import forms
-from .models import Despesa, Receita, Categoria, PerfilEmpresa, ContaBancaria, Fornecedor
+from .models import Despesa, Receita, Categoria, PerfilEmpresa, ContaBancaria, Fornecedor, DASN_SIMEI
 
 class DespesaForm(forms.ModelForm):
     # Campo adicional para cadastro rápido de fornecedor
@@ -195,3 +195,76 @@ class FornecedorForm(forms.ModelForm):
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+
+class DASN_SIMEIForm(forms.ModelForm):
+    """Formulário para DASN-SIMEI"""
+    
+    class Meta:
+        model = DASN_SIMEI
+        fields = [
+            'ano_calendario',
+            'valor_bruto_anual',
+            'declarada',
+            'data_envio',
+            'comprovante_pdf',
+            'observacoes'
+        ]
+        widgets = {
+            'ano_calendario': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: 2024',
+                'min': '2008',
+                'max': '2099'
+            }),
+            'valor_bruto_anual': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'placeholder': 'R$ 0,00'
+            }),
+            'declarada': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'data_envio': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+            'comprovante_pdf': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf'
+            }),
+            'observacoes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Informações adicionais sobre a declaração...'
+            })
+        }
+        labels = {
+            'ano_calendario': 'Ano Calendário',
+            'valor_bruto_anual': 'Valor Bruto Anual (R$)',
+            'declarada': 'Declaração Enviada?',
+            'data_envio': 'Data de Envio',
+            'comprovante_pdf': 'Comprovante (PDF)',
+            'observacoes': 'Observações'
+        }
+    
+    def clean_comprovante_pdf(self):
+        """Valida se o arquivo é PDF"""
+        arquivo = self.cleaned_data.get('comprovante_pdf')
+        if arquivo:
+            if not arquivo.name.endswith('.pdf'):
+                raise forms.ValidationError('Apenas arquivos PDF são permitidos.')
+            if arquivo.size > 5 * 1024 * 1024:
+                raise forms.ValidationError('O arquivo não pode exceder 5MB.')
+        return arquivo
+    
+    def clean(self):
+        """Validação customizada"""
+        cleaned_data = super().clean()
+        declarada = cleaned_data.get('declarada')
+        data_envio = cleaned_data.get('data_envio')
+        
+        if declarada and not data_envio:
+            self.add_error('data_envio', 'Informe a data de envio da declaração.')
+        
+        return cleaned_data

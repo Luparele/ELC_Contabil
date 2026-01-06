@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Categoria, Receita, Despesa, PerfilEmpresa, ContaBancaria, DeclaracaoAnual, Fornecedor
+from .models import Categoria, Receita, Despesa, PerfilEmpresa, ContaBancaria, DeclaracaoAnual, Fornecedor, DASN_SIMEI
 
 # Para mostrar as contas bancárias dentro do perfil da empresa
 class ContaBancariaInline(admin.TabularInline):
@@ -159,3 +159,45 @@ class ContaBancariaAdmin(admin.ModelAdmin):
         return "Não"
     preferencial_display.short_description = 'Preferencial'
     preferencial_display.admin_order_field = 'preferencial'
+
+
+# ==================== DASN-SIMEI ====================
+@admin.register(DASN_SIMEI)
+class DASN_SIMEIAdmin(admin.ModelAdmin):
+    list_display = ('ano_calendario', 'perfil_empresa', 'valor_bruto_formatado', 'status_display', 'data_envio')
+    list_filter = ('declarada', 'ano_calendario', 'perfil_empresa')
+    search_fields = ('ano_calendario', 'perfil_empresa__razao_social', 'perfil_empresa__cnpj')
+    ordering = ('-ano_calendario',)
+    
+    fieldsets = (
+        ('Informações da Declaração', {
+            'fields': ('perfil_empresa', 'ano_calendario', 'valor_bruto_anual')
+        }),
+        ('Status e Envio', {
+            'fields': ('declarada', 'data_envio', 'comprovante_pdf')
+        }),
+        ('Observações', {
+            'fields': ('observacoes',),
+            'classes': ('collapse',)
+        }),
+        ('Controle do Sistema', {
+            'fields': ('data_cadastro', 'data_atualizacao'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ('data_cadastro', 'data_atualizacao')
+    
+    def valor_bruto_formatado(self, obj):
+        """Exibe o valor formatado em reais"""
+        return f"R$ {obj.valor_bruto_anual:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    valor_bruto_formatado.short_description = 'Valor Bruto Anual'
+    valor_bruto_formatado.admin_order_field = 'valor_bruto_anual'
+    
+    def status_display(self, obj):
+        """Exibe o status com ícone colorido"""
+        if obj.declarada:
+            return "✅ Declarada"
+        return "⏳ Pendente"
+    status_display.short_description = 'Status'
+    status_display.admin_order_field = 'declarada'
